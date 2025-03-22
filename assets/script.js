@@ -20,33 +20,27 @@ $(document).ready(function() {
                 }
             }, "json");
         } else {
-            // Clear displayed data when input is erased
-            $("#user-info").hide();
-            $("#next-btn").hide();
-            $("#error-msg").hide();
-            $("#register-btn").hide();
+            resetUI();
         }
     });
 
-
     function resetUI() {
         $("#user-info").hide();
-        $("#verification-section").hide();
         $("#next-btn").hide();
         $("#error-msg").hide();
         $("#register-btn").hide();
     }
+
+    $("#next-btn").click(function() {
+        let emp_id = $("#emp_id").val().trim();
+
+        if (emp_id.length > 5) {
+            fetchIPAddress(emp_id);
+        } else {
+            alert("Please enter a valid Employee ID");
+        }
+    });
 });
-
-function proceed() {
-    let emp_id = $("#emp_id").val().trim();
-
-    if (emp_id.length > 5) {
-        fetchIPAddress(emp_id);
-    } else {
-        alert("Please enter a valid Employee ID");
-    }
-}
 
 function fetchIPAddress(emp_id) {
     $.getJSON("https://api64.ipify.org?format=json", function (data) {
@@ -55,12 +49,14 @@ function fetchIPAddress(emp_id) {
         $.getJSON("get_mac.php", function (macData) {
             let mac = macData.mac;
 
-            // Send data to PHP for validation
-            $.post("check_ip_mac.php", { emp_id: emp_id, ip: ip, mac: mac }, function (response) {
-                if (response.status === "warning") {
-                    alert(response.message);
+            // Send data to PHP for validation & redirection
+            $.post("check_player.php", { emp_id: emp_id, ip: ip, mac: mac }, function (response) {
+                if (response.status === "results") {
+                    window.location.href = "results.php?emp_id=" + emp_id;
+                } else if (response.status === "warning") {
+                    window.location.href = "device_warning.php?emp_id=" + emp_id;
                 } else {
-                    window.location.href = "game.php?emp_id=" + emp_id;
+                    window.location.href = "quiz.php?emp_id=" + emp_id;
                 }
             }, "json");
         });
